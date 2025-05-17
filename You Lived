@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Single Photo Upload</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 30px;
+    max-width: 500px;
+    margin: auto;
+    background: #f7f7f7;
+  }
+  h1 {
+    text-align: center;
+  }
+  .upload-section {
+    border: 2px dashed #aaa;
+    padding: 20px;
+    text-align: center;
+    background: white;
+  }
+  img {
+    max-width: 100%;
+    margin-top: 20px;
+    border-radius: 8px;
+  }
+  .date-time {
+    margin-top: 10px;
+    font-weight: bold;
+    color: #333;
+  }
+  input[type="file"] {
+    margin-top: 15px;
+  }
+  .message {
+    color: red;
+    margin-top: 15px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Upload Your Photo</h1>
+<div class="upload-section">
+  <input type="file" id="photoInput" accept="image/*" />
+  <div class="message" id="message"></div>
+  <img id="photoPreview" src="" alt="" style="display:none" />
+  <div class="date-time" id="uploadDateTime"></div>
+</div>
+
+<script>
+  const photoInput = document.getElementById('photoInput');
+  const photoPreview = document.getElementById('photoPreview');
+  const uploadDateTime = document.getElementById('uploadDateTime');
+  const message = document.getElementById('message');
+
+  // Use sessionStorage to remember if user uploaded photo already
+  if (sessionStorage.getItem('photoUploaded')) {
+    message.textContent = "You have already uploaded a photo.";
+    photoInput.disabled = true;
+    const savedPhoto = sessionStorage.getItem('photoData');
+    const savedDate = sessionStorage.getItem('uploadDate');
+    if (savedPhoto) {
+      photoPreview.src = savedPhoto;
+      photoPreview.style.display = 'block';
+    }
+    if (savedDate) {
+      uploadDateTime.textContent = `Uploaded on: ${savedDate}`;
+    }
+  }
+
+  photoInput.addEventListener('change', () => {
+    message.textContent = '';
+    const file = photoInput.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      message.textContent = "Please upload a valid image file.";
+      photoInput.value = '';
+      return;
+    }
+
+    if (sessionStorage.getItem('photoUploaded')) {
+      message.textContent = "You can only upload one photo.";
+      photoInput.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      photoPreview.src = e.target.result;
+      photoPreview.style.display = 'block';
+
+      const now = new Date();
+      const formattedDate = now.toLocaleString();
+      uploadDateTime.textContent = `Uploaded on: ${formattedDate}`;
+
+      // Save to sessionStorage so user can't upload again in this session
+      sessionStorage.setItem('photoUploaded', 'true');
+      sessionStorage.setItem('photoData', e.target.result);
+      sessionStorage.setItem('uploadDate', formattedDate);
+
+      // Disable file input
+      photoInput.disabled = true;
+    };
+    reader.readAsDataURL(file);
+  });
+</script>
+
+</body>
+</html>
